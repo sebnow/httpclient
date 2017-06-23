@@ -1,0 +1,3 @@
+[[constraint]]
+  name = "github.com/golang/mock"
+  revision = "93f6609a15b7de76bd49259f1f9a6b58df358936"
