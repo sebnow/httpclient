@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/sebnow/httpclient.svg?branch=master)](https://travis-ci.org/sebnow/httpclient)
+[![Go Report Card](https://goreportcard.com/badge/github.com/sebnow/httpclient)](https://goreportcard.com/report/github.com/sebnow/httpclient)
 
 Description
 ===========
