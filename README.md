@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/sebnow/httpclient.svg?branch=master)](https://travis-ci.org/sebnow/httpclient)
+[![Coverage Status](https://coveralls.io/repos/github/sebnow/httpclient/badge.svg?branch=master)](https://coveralls.io/github/sebnow/httpclient?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/sebnow/httpclient)](https://goreportcard.com/report/github.com/sebnow/httpclient)
 
 Description
