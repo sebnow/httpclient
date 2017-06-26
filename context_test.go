@@ -14,6 +14,8 @@ import (
 )
 
 type responseTestCase struct {
+	url            string
+	shouldMock     bool
 	returnResponse *http.Response
 	returnErr      error
 	expectedResp   *http.Response
@@ -29,11 +31,20 @@ func TestNewContextCanWrapDefaultClient(t *testing.T) {
 
 func TestClientContextGetContextAddsContext(t *testing.T) {
 	var testCases = map[string]responseTestCase{
+		"malformed url": {
+			url:         "://malformed",
+			shouldMock:  false,
+			expectedErr: fmt.Errorf("parse ://malformed: missing protocol scheme"),
+		},
 		"returns response": {
+			url:            "http://test.com",
+			shouldMock:     true,
 			returnResponse: &http.Response{},
 			expectedResp:   &http.Response{},
 		},
 		"returns error": {
+			url:         "http://test.com",
+			shouldMock:  true,
 			returnErr:   fmt.Errorf("error"),
 			expectedErr: fmt.Errorf("error"),
 		},
@@ -46,22 +57,25 @@ func TestClientContextGetContextAddsContext(t *testing.T) {
 
 			mockClient := NewMockClient(mockCtrl)
 			client := NewContext(mockClient)
-
 			ctx := context.TODO()
-			req, err := http.NewRequest("GET", "http://test.com", nil)
-			if err != nil {
-				panic(err)
-			}
-			req = req.WithContext(ctx)
 
-			mockClient.EXPECT().Do(reqMatcher{req}).Return(tt.expectedResp, tt.expectedErr)
-			resp, err := client.GetContext(ctx, "http://test.com")
+			if tt.shouldMock {
+				req, err := http.NewRequest("GET", tt.url, nil)
+				if err != nil {
+					panic(err)
+				}
+				req = req.WithContext(ctx)
+
+				mockClient.EXPECT().Do(reqMatcher{req}).Return(tt.expectedResp, tt.expectedErr)
+			}
+
+			resp, err := client.GetContext(ctx, tt.url)
 			if !reflect.DeepEqual(resp, tt.expectedResp) {
 				t.Errorf("Incorrect response;\n\texpected: %#v\n\t     got: %#v", tt.expectedResp, resp)
 			}
 
-			if !reflect.DeepEqual(err, tt.expectedErr) {
-				t.Errorf("Incorrect error;\n\texpected: %#v\n\t     got: %#v", tt.expectedErr, err)
+			if (err != nil || tt.expectedErr != nil) && err.Error() != tt.expectedErr.Error() {
+				t.Errorf("Incorrect error;\n\texpected: %s\n\t     got: %s", tt.expectedErr, err)
 			}
 		})
 	}
@@ -69,11 +83,20 @@ func TestClientContextGetContextAddsContext(t *testing.T) {
 
 func TestClientContextPostAddsContext(t *testing.T) {
 	var testCases = map[string]responseTestCase{
+		"malformed url": {
+			url:         "://malformed",
+			shouldMock:  false,
+			expectedErr: fmt.Errorf("parse ://malformed: missing protocol scheme"),
+		},
 		"returns response": {
+			url:            "http://test.com",
+			shouldMock:     true,
 			returnResponse: &http.Response{},
 			expectedResp:   &http.Response{},
 		},
 		"returns error": {
+			url:         "http://test.com",
+			shouldMock:  true,
 			returnErr:   fmt.Errorf("error"),
 			expectedErr: fmt.Errorf("error"),
 		},
@@ -90,21 +113,25 @@ func TestClientContextPostAddsContext(t *testing.T) {
 			ctx := context.TODO()
 			contentType := "text/html"
 			body := bytes.NewBufferString("")
-			req, err := http.NewRequest("POST", "http://test.com", body)
-			if err != nil {
-				panic(err)
-			}
-			req.Header.Set("content-type", contentType)
-			req = req.WithContext(ctx)
 
-			mockClient.EXPECT().Do(reqMatcher{req}).Return(tt.returnResponse, tt.returnErr)
-			resp, err := client.PostContext(ctx, "http://test.com", contentType, body)
+			if tt.shouldMock {
+				req, err := http.NewRequest("POST", tt.url, body)
+				if err != nil {
+					panic(err)
+				}
+				req.Header.Set("content-type", contentType)
+				req = req.WithContext(ctx)
+
+				mockClient.EXPECT().Do(reqMatcher{req}).Return(tt.returnResponse, tt.returnErr)
+			}
+
+			resp, err := client.PostContext(ctx, tt.url, contentType, body)
 			if !reflect.DeepEqual(resp, tt.expectedResp) {
 				t.Errorf("Incorrect response;\n\texpected: %#v\n\t     got: %#v", tt.expectedResp, resp)
 			}
 
-			if !reflect.DeepEqual(err, tt.expectedErr) {
-				t.Errorf("Incorrect error;\n\texpected: %#v\n\t     got: %#v", tt.expectedErr, err)
+			if (err != nil || tt.expectedErr != nil) && err.Error() != tt.expectedErr.Error() {
+				t.Errorf("Incorrect error;\n\texpected: %s\n\t     got: %s", tt.expectedErr, err)
 			}
 		})
 	}
@@ -112,11 +139,20 @@ func TestClientContextPostAddsContext(t *testing.T) {
 
 func TestClientContextHeadAddsContext(t *testing.T) {
 	var testCases = map[string]responseTestCase{
+		"malformed url": {
+			url:         "://malformed",
+			shouldMock:  false,
+			expectedErr: fmt.Errorf("parse ://malformed: missing protocol scheme"),
+		},
 		"returns response": {
+			url:            "http://test.com",
+			shouldMock:     true,
 			returnResponse: &http.Response{},
 			expectedResp:   &http.Response{},
 		},
 		"returns error": {
+			url:         "http://test.com",
+			shouldMock:  true,
 			returnErr:   fmt.Errorf("error"),
 			expectedErr: fmt.Errorf("error"),
 		},
@@ -131,20 +167,24 @@ func TestClientContextHeadAddsContext(t *testing.T) {
 			client := NewContext(mockClient)
 
 			ctx := context.TODO()
-			req, err := http.NewRequest("HEAD", "http://test.com", nil)
-			if err != nil {
-				panic(err)
-			}
-			req = req.WithContext(ctx)
 
-			mockClient.EXPECT().Do(reqMatcher{req}).Return(tt.returnResponse, tt.returnErr)
-			resp, err := client.HeadContext(ctx, "http://test.com")
+			if tt.shouldMock {
+				req, err := http.NewRequest("HEAD", tt.url, nil)
+				if err != nil {
+					panic(err)
+				}
+				req = req.WithContext(ctx)
+
+				mockClient.EXPECT().Do(reqMatcher{req}).Return(tt.returnResponse, tt.returnErr)
+			}
+
+			resp, err := client.HeadContext(ctx, tt.url)
 			if !reflect.DeepEqual(resp, tt.expectedResp) {
 				t.Errorf("Incorrect response;\n\texpected: %#v\n\t     got: %#v", tt.expectedResp, resp)
 			}
 
-			if !reflect.DeepEqual(err, tt.expectedErr) {
-				t.Errorf("Incorrect error;\n\texpected: %#v\n\t     got: %#v", tt.expectedErr, err)
+			if (err != nil || tt.expectedErr != nil) && err.Error() != tt.expectedErr.Error() {
+				t.Errorf("Incorrect error;\n\texpected: %s\n\t     got: %s", tt.expectedErr, err)
 			}
 		})
 	}
@@ -152,11 +192,20 @@ func TestClientContextHeadAddsContext(t *testing.T) {
 
 func TestClientContextPostFormAddsContext(t *testing.T) {
 	var testCases = map[string]responseTestCase{
+		"malformed url": {
+			url:         "://malformed",
+			shouldMock:  false,
+			expectedErr: fmt.Errorf("parse ://malformed: missing protocol scheme"),
+		},
 		"returns response": {
+			url:            "http://test.com",
+			shouldMock:     true,
 			returnResponse: &http.Response{},
 			expectedResp:   &http.Response{},
 		},
 		"returns error": {
+			url:         "http://test.com",
+			shouldMock:  true,
 			returnErr:   fmt.Errorf("error"),
 			expectedErr: fmt.Errorf("error"),
 		},
@@ -174,21 +223,25 @@ func TestClientContextPostFormAddsContext(t *testing.T) {
 			ctx := context.TODO()
 			contentType := "application/x-www-form-urlencoded"
 			body := strings.NewReader(values.Encode())
-			req, err := http.NewRequest("POST", "http://test.com", body)
-			if err != nil {
-				panic(err)
-			}
-			req.Header.Set("content-type", contentType)
-			req = req.WithContext(ctx)
 
-			mockClient.EXPECT().Do(reqMatcher{req}).Return(tt.returnResponse, tt.returnErr)
-			resp, err := client.PostFormContext(ctx, "http://test.com", values)
+			if tt.shouldMock {
+				req, err := http.NewRequest("POST", tt.url, body)
+				if err != nil {
+					panic(err)
+				}
+				req.Header.Set("content-type", contentType)
+				req = req.WithContext(ctx)
+
+				mockClient.EXPECT().Do(reqMatcher{req}).Return(tt.returnResponse, tt.returnErr)
+			}
+
+			resp, err := client.PostFormContext(ctx, tt.url, values)
 			if !reflect.DeepEqual(resp, tt.expectedResp) {
 				t.Errorf("Incorrect response;\n\texpected: %#v\n\t     got: %#v", tt.expectedResp, resp)
 			}
 
-			if !reflect.DeepEqual(err, tt.expectedErr) {
-				t.Errorf("Incorrect error;\n\texpected: %#v\n\t     got: %#v", tt.expectedErr, err)
+			if (err != nil || tt.expectedErr != nil) && err.Error() != tt.expectedErr.Error() {
+				t.Errorf("Incorrect error;\n\texpected: %s\n\t     got: %s", tt.expectedErr, err)
 			}
 		})
 	}
