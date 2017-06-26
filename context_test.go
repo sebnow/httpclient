@@ -13,6 +13,13 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
+type responseTestCase struct {
+	returnResponse *http.Response
+	returnErr      error
+	expectedResp   *http.Response
+	expectedErr    error
+}
+
 func TestNewContextCanWrapDefaultClient(t *testing.T) {
 	clientContext := NewContext(http.DefaultClient)
 	if _, ok := clientContext.(ClientContext); !ok {
@@ -21,113 +28,169 @@ func TestNewContextCanWrapDefaultClient(t *testing.T) {
 }
 
 func TestClientContextGetContextAddsContext(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
-
-	mockClient := NewMockClient(mockCtrl)
-	client := NewContext(mockClient)
-
-	ctx := context.TODO()
-	expectedResp := &http.Response{}
-	req, err := http.NewRequest("GET", "http://test.com", nil)
-	if err != nil {
-		panic(err)
-	}
-	req = req.WithContext(ctx)
-
-	mockClient.EXPECT().Do(reqMatcher{req}).Return(expectedResp, nil)
-	resp, err := client.GetContext(ctx, "http://test.com")
-	if !reflect.DeepEqual(resp, expectedResp) {
-		t.Errorf("Incorrect response;\n\texpected: %#v\n\t     got: %#v", expectedResp, resp)
+	var testCases = map[string]responseTestCase{
+		"returns response": {
+			returnResponse: &http.Response{},
+			expectedResp:   &http.Response{},
+		},
+		"returns error": {
+			returnErr:   fmt.Errorf("error"),
+			expectedErr: fmt.Errorf("error"),
+		},
 	}
 
-	if !reflect.DeepEqual(err, nil) {
-		t.Errorf("Incorrect error;\n\texpected: %#v\n\t     got: %#v", nil, err)
+	for testName, tt := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			mockCtrl := gomock.NewController(t)
+			defer mockCtrl.Finish()
+
+			mockClient := NewMockClient(mockCtrl)
+			client := NewContext(mockClient)
+
+			ctx := context.TODO()
+			req, err := http.NewRequest("GET", "http://test.com", nil)
+			if err != nil {
+				panic(err)
+			}
+			req = req.WithContext(ctx)
+
+			mockClient.EXPECT().Do(reqMatcher{req}).Return(tt.expectedResp, tt.expectedErr)
+			resp, err := client.GetContext(ctx, "http://test.com")
+			if !reflect.DeepEqual(resp, tt.expectedResp) {
+				t.Errorf("Incorrect response;\n\texpected: %#v\n\t     got: %#v", tt.expectedResp, resp)
+			}
+
+			if !reflect.DeepEqual(err, tt.expectedErr) {
+				t.Errorf("Incorrect error;\n\texpected: %#v\n\t     got: %#v", tt.expectedErr, err)
+			}
+		})
 	}
 }
 
 func TestClientContextPostAddsContext(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
-
-	mockClient := NewMockClient(mockCtrl)
-	client := NewContext(mockClient)
-
-	ctx := context.TODO()
-	contentType := "text/html"
-	expectedResp := &http.Response{}
-	body := bytes.NewBufferString("")
-	req, err := http.NewRequest("POST", "http://test.com", body)
-	if err != nil {
-		panic(err)
-	}
-	req.Header.Set("content-type", contentType)
-	req = req.WithContext(ctx)
-
-	mockClient.EXPECT().Do(reqMatcher{req}).Return(expectedResp, nil)
-	resp, err := client.PostContext(ctx, "http://test.com", contentType, body)
-	if !reflect.DeepEqual(resp, expectedResp) {
-		t.Errorf("Incorrect response;\n\texpected: %#v\n\t     got: %#v", expectedResp, resp)
+	var testCases = map[string]responseTestCase{
+		"returns response": {
+			returnResponse: &http.Response{},
+			expectedResp:   &http.Response{},
+		},
+		"returns error": {
+			returnErr:   fmt.Errorf("error"),
+			expectedErr: fmt.Errorf("error"),
+		},
 	}
 
-	if !reflect.DeepEqual(err, nil) {
-		t.Errorf("Incorrect error;\n\texpected: %#v\n\t     got: %#v", nil, err)
+	for testName, tt := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			mockCtrl := gomock.NewController(t)
+			defer mockCtrl.Finish()
+
+			mockClient := NewMockClient(mockCtrl)
+			client := NewContext(mockClient)
+
+			ctx := context.TODO()
+			contentType := "text/html"
+			body := bytes.NewBufferString("")
+			req, err := http.NewRequest("POST", "http://test.com", body)
+			if err != nil {
+				panic(err)
+			}
+			req.Header.Set("content-type", contentType)
+			req = req.WithContext(ctx)
+
+			mockClient.EXPECT().Do(reqMatcher{req}).Return(tt.returnResponse, tt.returnErr)
+			resp, err := client.PostContext(ctx, "http://test.com", contentType, body)
+			if !reflect.DeepEqual(resp, tt.expectedResp) {
+				t.Errorf("Incorrect response;\n\texpected: %#v\n\t     got: %#v", tt.expectedResp, resp)
+			}
+
+			if !reflect.DeepEqual(err, tt.expectedErr) {
+				t.Errorf("Incorrect error;\n\texpected: %#v\n\t     got: %#v", tt.expectedErr, err)
+			}
+		})
 	}
 }
 
 func TestClientContextHeadAddsContext(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
-
-	mockClient := NewMockClient(mockCtrl)
-	client := NewContext(mockClient)
-
-	ctx := context.TODO()
-	expectedResp := &http.Response{}
-	req, err := http.NewRequest("HEAD", "http://test.com", nil)
-	if err != nil {
-		panic(err)
-	}
-	req = req.WithContext(ctx)
-
-	mockClient.EXPECT().Do(reqMatcher{req}).Return(expectedResp, nil)
-	resp, err := client.HeadContext(ctx, "http://test.com")
-	if !reflect.DeepEqual(resp, expectedResp) {
-		t.Errorf("Incorrect response;\n\texpected: %#v\n\t     got: %#v", expectedResp, resp)
+	var testCases = map[string]responseTestCase{
+		"returns response": {
+			returnResponse: &http.Response{},
+			expectedResp:   &http.Response{},
+		},
+		"returns error": {
+			returnErr:   fmt.Errorf("error"),
+			expectedErr: fmt.Errorf("error"),
+		},
 	}
 
-	if !reflect.DeepEqual(err, nil) {
-		t.Errorf("Incorrect error;\n\texpected: %#v\n\t     got: %#v", nil, err)
+	for testName, tt := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			mockCtrl := gomock.NewController(t)
+			defer mockCtrl.Finish()
+
+			mockClient := NewMockClient(mockCtrl)
+			client := NewContext(mockClient)
+
+			ctx := context.TODO()
+			req, err := http.NewRequest("HEAD", "http://test.com", nil)
+			if err != nil {
+				panic(err)
+			}
+			req = req.WithContext(ctx)
+
+			mockClient.EXPECT().Do(reqMatcher{req}).Return(tt.returnResponse, tt.returnErr)
+			resp, err := client.HeadContext(ctx, "http://test.com")
+			if !reflect.DeepEqual(resp, tt.expectedResp) {
+				t.Errorf("Incorrect response;\n\texpected: %#v\n\t     got: %#v", tt.expectedResp, resp)
+			}
+
+			if !reflect.DeepEqual(err, tt.expectedErr) {
+				t.Errorf("Incorrect error;\n\texpected: %#v\n\t     got: %#v", tt.expectedErr, err)
+			}
+		})
 	}
 }
 
 func TestClientContextPostFormAddsContext(t *testing.T) {
-	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
-
-	mockClient := NewMockClient(mockCtrl)
-	client := NewContext(mockClient)
-
-	var values url.Values
-	ctx := context.TODO()
-	contentType := "application/x-www-form-urlencoded"
-	expectedResp := &http.Response{}
-	body := strings.NewReader(values.Encode())
-	req, err := http.NewRequest("POST", "http://test.com", body)
-	if err != nil {
-		panic(err)
-	}
-	req.Header.Set("content-type", contentType)
-	req = req.WithContext(ctx)
-
-	mockClient.EXPECT().Do(reqMatcher{req}).Return(expectedResp, nil)
-	resp, err := client.PostFormContext(ctx, "http://test.com", values)
-	if !reflect.DeepEqual(resp, expectedResp) {
-		t.Errorf("Incorrect response;\n\texpected: %#v\n\t     got: %#v", expectedResp, resp)
+	var testCases = map[string]responseTestCase{
+		"returns response": {
+			returnResponse: &http.Response{},
+			expectedResp:   &http.Response{},
+		},
+		"returns error": {
+			returnErr:   fmt.Errorf("error"),
+			expectedErr: fmt.Errorf("error"),
+		},
 	}
 
-	if !reflect.DeepEqual(err, nil) {
-		t.Errorf("Incorrect error;\n\texpected: %#v\n\t     got: %#v", nil, err)
+	for testName, tt := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			mockCtrl := gomock.NewController(t)
+			defer mockCtrl.Finish()
+
+			mockClient := NewMockClient(mockCtrl)
+			client := NewContext(mockClient)
+
+			var values url.Values
+			ctx := context.TODO()
+			contentType := "application/x-www-form-urlencoded"
+			body := strings.NewReader(values.Encode())
+			req, err := http.NewRequest("POST", "http://test.com", body)
+			if err != nil {
+				panic(err)
+			}
+			req.Header.Set("content-type", contentType)
+			req = req.WithContext(ctx)
+
+			mockClient.EXPECT().Do(reqMatcher{req}).Return(tt.returnResponse, tt.returnErr)
+			resp, err := client.PostFormContext(ctx, "http://test.com", values)
+			if !reflect.DeepEqual(resp, tt.expectedResp) {
+				t.Errorf("Incorrect response;\n\texpected: %#v\n\t     got: %#v", tt.expectedResp, resp)
+			}
+
+			if !reflect.DeepEqual(err, tt.expectedErr) {
+				t.Errorf("Incorrect error;\n\texpected: %#v\n\t     got: %#v", tt.expectedErr, err)
+			}
+		})
 	}
 }
 
