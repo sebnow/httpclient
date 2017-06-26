@@ -5,7 +5,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -106,10 +108,11 @@ func TestClientContextPostFormAddsContext(t *testing.T) {
 	mockClient := NewMockClient(mockCtrl)
 	client := NewContext(mockClient)
 
+	var values url.Values
 	ctx := context.TODO()
 	contentType := "application/x-www-form-urlencoded"
 	expectedResp := &http.Response{}
-	body := bytes.NewBufferString("")
+	body := strings.NewReader(values.Encode())
 	req, err := http.NewRequest("POST", "http://test.com", body)
 	if err != nil {
 		panic(err)
@@ -118,7 +121,7 @@ func TestClientContextPostFormAddsContext(t *testing.T) {
 	req = req.WithContext(ctx)
 
 	mockClient.EXPECT().Do(reqMatcher{req}).Return(expectedResp, nil)
-	resp, err := client.PostFormContext(ctx, "http://test.com", nil)
+	resp, err := client.PostFormContext(ctx, "http://test.com", values)
 	if !reflect.DeepEqual(resp, expectedResp) {
 		t.Errorf("Incorrect response;\n\texpected: %#v\n\t     got: %#v", expectedResp, resp)
 	}
@@ -144,7 +147,7 @@ func (m reqMatcher) Matches(i interface{}) bool {
 	r = r && m.x.Method == x.Method
 	r = r && m.x.URL.String() == x.URL.String()
 	r = r && m.x.Header.Get("content-type") == x.Header.Get("content-type")
-	r = r && m.x.Body == x.Body
+	r = r && reflect.DeepEqual(m.x.Body, x.Body)
 	r = r && m.x.Context() == x.Context()
 	return r
 }
