@@ -11,6 +11,8 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+
+	"github.com/sebnow/httpclient/mock_client"
 )
 
 type responseTestCase struct {
@@ -55,7 +57,7 @@ func TestClientContextGetContextAddsContext(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 
-			mockClient := NewMockClient(mockCtrl)
+			mockClient := mock_client.NewMockClient(mockCtrl)
 			client := NewContext(mockClient)
 			ctx := context.TODO()
 
@@ -107,7 +109,7 @@ func TestClientContextPostAddsContext(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 
-			mockClient := NewMockClient(mockCtrl)
+			mockClient := mock_client.NewMockClient(mockCtrl)
 			client := NewContext(mockClient)
 
 			ctx := context.TODO()
@@ -163,7 +165,7 @@ func TestClientContextHeadAddsContext(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 
-			mockClient := NewMockClient(mockCtrl)
+			mockClient := mock_client.NewMockClient(mockCtrl)
 			client := NewContext(mockClient)
 
 			ctx := context.TODO()
@@ -216,7 +218,7 @@ func TestClientContextPostFormAddsContext(t *testing.T) {
 			mockCtrl := gomock.NewController(t)
 			defer mockCtrl.Finish()
 
-			mockClient := NewMockClient(mockCtrl)
+			mockClient := mock_client.NewMockClient(mockCtrl)
 			client := NewContext(mockClient)
 
 			var values url.Values
