@@ -5,6 +5,7 @@ go:
   - 1.8.x
 
 before_install:
+  - go get -u github.com/golang/mock/gomock
   - go get github.com/mattn/goveralls
 script:
   - $HOME/gopath/bin/goveralls -service=travis-ci
